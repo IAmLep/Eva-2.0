@@ -18,13 +18,16 @@ import com.example.eva20.network.api.ApiService
 import com.example.eva20.utils.Logger
 import com.google.android.material.navigation.NavigationView
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
 
 class MainActivity : AppCompatActivity() {
-
+    private val TAG = "MainActivity"
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
     private lateinit var navController: NavController
-    private val TAG = "MainActivity"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -69,7 +72,11 @@ class MainActivity : AppCompatActivity() {
         // Check backend health
         checkBackendHealth()
 
-        Logger.i(TAG, "Main activity created")
+        // Log application startup with current time
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+        dateFormat.timeZone = TimeZone.getTimeZone("UTC")
+        val currentTime = dateFormat.format(Date())
+        Logger.i(TAG, "Main activity created at $currentTime by user: IAmLep")
     }
 
     private fun checkBackendHealth() {

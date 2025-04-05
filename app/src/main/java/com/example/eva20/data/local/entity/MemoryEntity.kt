@@ -8,35 +8,42 @@ import com.example.eva20.network.models.Memory
 data class MemoryEntity(
     @PrimaryKey
     val id: String,
-    val text: String,
-    val userId: String?,
+    val title: String,
+    val content: String,
+    val userId: String,
     val timestamp: Long,
-    val importance: Int,
-    val category: String?,
+    val importance: Int = 1,
+    val category: String? = null,
+    val tags: String = "",
     val synced: Boolean = false
 ) {
     companion object {
-        fun fromMemory(memory: Memory, synced: Boolean = false): MemoryEntity {
+        fun fromMemory(memory: Memory): MemoryEntity {
             return MemoryEntity(
                 id = memory.id,
-                text = memory.text,
-                userId = memory.userId,
+                title = memory.title,
+                content = memory.text,
+                userId = memory.userId ?: "IAmLep",
                 timestamp = memory.timestamp,
                 importance = memory.importance,
                 category = memory.category,
-                synced = synced
+                tags = memory.tags.joinToString(","),
+                synced = memory.isSynced
             )
         }
-    }
 
-    fun toMemory(): Memory {
-        return Memory(
-            id = id,
-            text = text,
-            userId = userId,
-            timestamp = timestamp,
-            importance = importance,
-            category = category
-        )
+        fun toMemory(entity: MemoryEntity): Memory {
+            return Memory(
+                id = entity.id,
+                title = entity.title,
+                text = entity.content,
+                userId = entity.userId,
+                timestamp = entity.timestamp,
+                importance = entity.importance,
+                category = entity.category,
+                tags = if (entity.tags.isNotEmpty()) entity.tags.split(",") else emptyList(),
+                isSynced = entity.synced
+            )
+        }
     }
 }

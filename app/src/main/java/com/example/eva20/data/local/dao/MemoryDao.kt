@@ -19,19 +19,19 @@ interface MemoryDao {
     suspend fun getMemoryById(id: String): MemoryEntity?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertMemory(memory: MemoryEntity)
+    suspend fun insertMemory(memory: MemoryEntity): Long
 
     @Update
-    suspend fun updateMemory(memory: MemoryEntity)
+    suspend fun updateMemory(memory: MemoryEntity): Int
 
     @Query("DELETE FROM memories WHERE id = :id")
-    suspend fun deleteMemory(id: String)
+    suspend fun deleteMemory(id: String): Int
 
     @Query("DELETE FROM memories")
-    suspend fun deleteAllMemories()
+    suspend fun deleteAllMessages(): Int
 
     @Query("UPDATE memories SET synced = 1 WHERE id = :id")
-    suspend fun markAsSynced(id: String)
+    suspend fun markAsSynced(id: String): Int
 
     @Query("SELECT * FROM memories WHERE category = :category ORDER BY timestamp DESC")
     suspend fun getMemoriesByCategory(category: String): List<MemoryEntity>

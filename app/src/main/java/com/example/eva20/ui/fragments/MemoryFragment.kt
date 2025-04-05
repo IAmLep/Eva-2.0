@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -11,9 +12,13 @@ import com.example.eva20.databinding.FragmentMemoryBinding
 import com.example.eva20.ui.adapters.MemoryAdapter
 import com.example.eva20.ui.viewmodels.MemoryViewModel
 import com.example.eva20.utils.Logger
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class MemoryFragment : Fragment() {
-
+    private val TAG = "MemoryFragment"
     private var _binding: FragmentMemoryBinding? = null
     private val binding get() = _binding!!
 
@@ -32,11 +37,12 @@ class MemoryFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        Logger.d("MemoryFragment", "Fragment created")
+        Logger.d(TAG, "Fragment created")
 
         setupViewModel()
         setupRecyclerView()
         setupSwipeRefresh()
+        setupAddButton()
         observeData()
     }
 
@@ -61,6 +67,12 @@ class MemoryFragment : Fragment() {
         }
     }
 
+    private fun setupAddButton() {
+        binding.fabAddMemory.setOnClickListener {
+            showAddMemoryDialog()
+        }
+    }
+
     private fun observeData() {
         memoryViewModel.memories.observe(viewLifecycleOwner) { memories ->
             memoryAdapter.submitList(memories)
@@ -72,14 +84,13 @@ class MemoryFragment : Fragment() {
         }
 
         memoryViewModel.syncStatus.observe(viewLifecycleOwner) { status ->
-            Logger.d("MemoryFragment", "Sync status: $status")
-            // Could show a toast here
+            Logger.d(TAG, "Sync status: $status")
+            Toast.makeText(context, status, Toast.LENGTH_SHORT).show()
         }
     }
 
     private fun showDeleteConfirmationDialog(memoryId: String) {
-        // Show alert dialog to confirm deletion
-        android.app.AlertDialog.Builder(requireContext())
+        MaterialAlertDialogBuilder(requireContext())
             .setTitle("Delete Memory")
             .setMessage("Are you sure you want to delete this memory? This cannot be undone.")
             .setPositiveButton("Delete") { _, _ ->
@@ -87,6 +98,20 @@ class MemoryFragment : Fragment() {
             }
             .setNegativeButton("Cancel", null)
             .show()
+    }
+
+    private fun showAddMemoryDialog() {
+        // This would typically be a custom dialog with form fields
+        // For now, we'll create a test memory
+        val currentDateTime = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())
+        memoryViewModel.createMemory(
+            title = "Memory created on $currentDateTime",
+            text = "This is a test memory created from the Memory Fragment",
+            importance = 3,
+            category = "Test"
+        )
+
+        Toast.makeText(context, "Test memory created", Toast.LENGTH_SHORT).show()
     }
 
     override fun onDestroyView() {

@@ -19,17 +19,17 @@ interface ChatMessageDao {
     suspend fun getUnsyncedMessages(): List<ChatMessageEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertMessage(message: ChatMessageEntity)
+    suspend fun insertMessage(message: ChatMessageEntity): Long
 
     @Update
-    suspend fun updateMessage(message: ChatMessageEntity)
+    suspend fun updateMessage(message: ChatMessageEntity): Int
 
     @Query("DELETE FROM chat_messages WHERE id = :id")
-    suspend fun deleteMessage(id: String)
+    suspend fun deleteMessage(id: String): Int
 
     @Query("DELETE FROM chat_messages")
-    suspend fun deleteAllMessages()
+    suspend fun deleteAllMessages(): Int
 
     @Query("UPDATE chat_messages SET synced = 1 WHERE id = :id")
-    suspend fun markAsSynced(id: String)
+    suspend fun markAsSynced(id: String): Int
 }

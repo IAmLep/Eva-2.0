@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.eva20.R
 import com.example.eva20.network.models.ChatMessage
 import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Locale
 
 class ChatAdapter : ListAdapter<ChatMessage, ChatAdapter.ChatViewHolder>(ChatDiffCallback()) {
@@ -35,12 +36,12 @@ class ChatAdapter : ListAdapter<ChatMessage, ChatAdapter.ChatViewHolder>(ChatDif
         private val messageContainer: ConstraintLayout = itemView.findViewById(R.id.messageContainer)
 
         fun bind(message: ChatMessage) {
-            messageContent.text = message.content
-            messageTime.text = dateFormat.format(message.timestamp)
+            messageContent.text = message.text
+            messageTime.text = dateFormat.format(Date(message.timestamp))
 
             // Align messages based on sender (user or bot)
             val params = messageContainer.layoutParams as ViewGroup.MarginLayoutParams
-            if (message.isFromUser) {
+            if (message.isUser) {
                 messageContainer.setBackgroundResource(R.drawable.bg_message_user)
                 params.apply {
                     marginStart = 100

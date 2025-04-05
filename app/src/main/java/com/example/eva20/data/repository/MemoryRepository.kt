@@ -1,74 +1,81 @@
 package com.example.eva20.data.repository
 
-import com.example.eva20.data.local.MemoryDatabase
+import com.example.eva20.data.local.DatabaseManager
 import com.example.eva20.data.remote.BackendSync
-import com.example.eva20.network.api.ApiService
 import com.example.eva20.network.models.Memory
 import com.example.eva20.utils.Logger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 class MemoryRepository {
-
-    private val memoryDatabase = MemoryDatabase
+    private val tag = "MemoryRepository"
 
     suspend fun getLocalMemories(): List<Memory> = withContext(Dispatchers.IO) {
         try {
-            memoryDatabase.getAllMemories()
+            Logger.d(tag, "Getting all memories from local database")
+            return@withContext DatabaseManager.getAllMemories()
         } catch (e: Exception) {
-            Logger.e("MemoryRepository", "Error getting local memories", e)
-            emptyList()
+            Logger.e(tag, "Error getting local memories", e)
+            return@withContext emptyList()
         }
     }
 
-    suspend fun syncWithCloud() = withContext(Dispatchers.IO) {
+    suspend fun createMemory(memory: Memory): Boolean = withContext(Dispatchers.IO) {
         try {
-            // First ensure we're authenticated
-            if (!ApiService.isAuthenticated()) {
-                val authenticated = ApiService.authenticate()
-                if (!authenticated) {
-                    throw Exception("Authentication failed")
-                }
-            }
-
-            // Get unsynced memories and send to backend
-            val unsyncedMemories = memoryDatabase.getUnsyncedMemories()
-            if (unsyncedMemories.isNotEmpty()) {
-                BackendSync.syncMemories(unsyncedMemories)
-
-                // Mark synced
-                for (memory in unsyncedMemories) {
-                    memoryDatabase.markAsSynced(memory.id)
-                }
-            }
-
-            // Get latest data from backend
-            val result = ApiService.safeApiCall {
-                ApiService.apiClient.getMemories()
-            }
-
-            if (result.isSuccess) {
-                val remoteMemories = result.getOrNull() ?: emptyList()
-                memoryDatabase.updateMemoriesFromRemote(remoteMemories)
-            }
-
+            // Save locally first
+            DatabaseManager.addMemory(memory)
+            Logger.d(tag, "Memory saved locally: ${memory.id}")
+            return@withContext true
         } catch (e: Exception) {
-            Logger.e("MemoryRepository", "Error syncing with cloud", e)
-            throw e
+            Logger.e(tag, "Error saving memory locally", e)
+            return@withContext false
         }
     }
 
-    suspend fun deleteMemory(memoryId: String) = withContext(Dispatchers.IO) {
+    suspend fun deleteMemory(memoryId: String): Boolean = withContext(Dispatchers.IO) {
         try {
-            // Delete locally first
-            memoryDatabase.deleteMemory(memoryId)
+            // Delete locally
+            DatabaseManager.deleteMemory(memoryId)
+            Logger.d(tag, "Memory deleted locally: $memoryId")
 
-            // Try to delete from backend
+            // Mark for deletion in backend
             BackendSync.markForDeletion(memoryId)
 
+            return@withContext true
         } catch (e: Exception) {
-            Logger.e("MemoryRepository", "Error deleting memory", e)
-            false
+            Logger.e(tag, "Error deleting memory", e)
+            return@withContext false
+        }
+    }
+
+    suspend fun syncWithCloud(): Boolean = withContext(Dispatchers.IO) {
+        try {
+            // Get memories that need syncing
+            val memoriesToSync = DatabaseManager.getUnsyncedMemories()
+            if (memoriesToSync.isNotEmpty()) {
+                Logger.d(tag, "Syncing ${memoriesToSync.size} memories with cloud")
+
+                // Send to backend
+                val syncSuccess = BackendSync.syncMemories(memoriesToSync)
+
+                if (syncSuccess) {
+                    // Mark all as synced
+                    memoriesToSync.forEach { memory ->
+                        DatabaseManager.markMemoryAsSynced(memory.id)
+                    }
+                    Logger.d(tag, "Successfully synced memories with cloud")
+                } else {
+                    Logger.e(tag, "Failed to sync some memories with cloud")
+                }
+
+                return@withContext syncSuccess
+            }
+
+            Logger.d(tag, "No memories to sync")
+            return@withContext true
+        } catch (e: Exception) {
+            Logger.e(tag, "Error syncing with cloud", e)
+            return@withContext false
         }
     }
 }

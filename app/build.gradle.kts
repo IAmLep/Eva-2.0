@@ -1,8 +1,8 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
-    id("kotlin-kapt") // Add kapt plugin for Room
-    id("kotlin-parcelize") // Optional for Parcelable
+    alias(libs.plugins.ksp) // Replace kapt with ksp
+    id("kotlin-parcelize")
 }
 
 android {
@@ -68,9 +68,10 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.coroutines.play.services)
 
-    // Room Database - Add these lines
+    // Room Database - Replace kapt with ksp
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler) // Changed from kapt to ksp
 
     // Swipe refresh layout
     implementation(libs.androidx.swiperefreshlayout)

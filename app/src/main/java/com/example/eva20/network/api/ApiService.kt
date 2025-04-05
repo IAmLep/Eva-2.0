@@ -13,12 +13,10 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import retrofit2.http.Body
-import retrofit2.http.POST
 import java.util.concurrent.TimeUnit
 
 object ApiService {
-    private const val TAG = "ApiService"  // Changed to const val
+    private const val TAG = "ApiService"
 
     private val authManager = AuthManager()
 
@@ -52,22 +50,21 @@ object ApiService {
         retrofit.create(ApiClient::class.java)
     }
 
-    // Add this data class for authentication response
+    // Data class for authentication response
     data class AuthResponse(
         val token: String,
         val expires_in: Int? = null
     )
 
-    // Add authentication endpoint to ApiClient interface
+    // Authentication endpoint interface
     interface AuthApiClient {
-        @POST("auth/token")
-        suspend fun getAuthToken(@Body request: AuthRequest): Response<AuthResponse>
+        @retrofit2.http.POST("auth/token")
+        suspend fun getAuthToken(@retrofit2.http.Body request: AuthRequest): Response<AuthResponse>
     }
 
     data class AuthRequest(
         val username: String,
         val password: String,
-        // For service account authentication you might use different fields
         val client_id: String? = null,
         val client_secret: String? = null,
         val grant_type: String = "password"
@@ -88,7 +85,6 @@ object ApiService {
             Logger.d(TAG, "Attempting to authenticate with backend")
 
             // For this example, we're using a pre-configured service account
-            // In a real app, you might get these from secure storage or BuildConfig
             val request = AuthRequest(
                 username = "service-account@example.com",  // Replace with actual service account
                 password = "service-account-password",     // Replace with actual password
@@ -113,8 +109,6 @@ object ApiService {
         }
     }
 
-    // Add @Suppress annotation for unused functions
-    @Suppress("unused")
     suspend fun sendMessage(message: ChatMessage, useSimpleEndpoint: Boolean = false): Result<ChatMessage> = withContext(Dispatchers.IO) {
         try {
             Logger.d(TAG, "Sending message: ${message.text} to ${if (useSimpleEndpoint) "simple-message" else "message"} endpoint")
@@ -144,8 +138,6 @@ object ApiService {
         }
     }
 
-    // Add memory-specific methods
-    @Suppress("unused")
     suspend fun syncMemories(memories: List<Memory>): Result<Boolean> = withContext(Dispatchers.IO) {
         try {
             Logger.d(TAG, "Syncing ${memories.size} memories with backend")

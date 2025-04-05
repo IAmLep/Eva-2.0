@@ -38,9 +38,9 @@ class ChatViewModel : ViewModel() {
             try {
                 val message = ChatMessage(
                     id = System.currentTimeMillis().toString(),
-                    content = content,
-                    timestamp = Date(),
-                    isFromUser = true
+                    text = content,
+                    timestamp = System.currentTimeMillis(),
+                    isUser = true
                 )
 
                 // Add to local list immediately for UI responsiveness
@@ -67,9 +67,9 @@ class ChatViewModel : ViewModel() {
 
                 val responseMessage = ChatMessage(
                     id = System.currentTimeMillis().toString(),
-                    content = "This is a response to: ${userMessage.content}",
-                    timestamp = Date(),
-                    isFromUser = false
+                    text = "This is a response to: ${userMessage.text}",
+                    timestamp = System.currentTimeMillis(),
+                    isUser = false
                 )
 
                 val currentList = _chatMessages.value?.toMutableList() ?: mutableListOf()

@@ -12,36 +12,35 @@ data class ChatMessageEntity(
     val userId: String?,
     val isUser: Boolean,
     val timestamp: Long,
-    val pending: Boolean,
-    val error: Boolean,
-    val synced: Boolean = false // Added to track sync status
+    val synced: Boolean = false,
+    val pending: Boolean = false,
+    val error: Boolean = false
 ) {
     companion object {
-        // Convert from domain model to entity
-        fun fromChatMessage(message: ChatMessage, synced: Boolean = false): ChatMessageEntity {
+        fun fromChatMessage(message: ChatMessage): ChatMessageEntity {
             return ChatMessageEntity(
                 id = message.id,
                 text = message.text,
                 userId = message.userId,
                 isUser = message.isUser,
                 timestamp = message.timestamp,
+                synced = message.isSynced,
                 pending = message.pending,
-                error = message.error,
-                synced = synced
+                error = message.error
             )
         }
-    }
 
-    // Convert from entity to domain model
-    fun toChatMessage(): ChatMessage {
-        return ChatMessage(
-            id = id,
-            text = text,
-            userId = userId,
-            isUser = isUser,
-            timestamp = timestamp,
-            pending = pending,
-            error = error
-        )
+        fun toChatMessage(entity: ChatMessageEntity): ChatMessage {
+            return ChatMessage(
+                id = entity.id,
+                text = entity.text,
+                userId = entity.userId,
+                isUser = entity.isUser,
+                timestamp = entity.timestamp,
+                pending = entity.pending,
+                error = entity.error,
+                isSynced = entity.synced
+            )
+        }
     }
 }

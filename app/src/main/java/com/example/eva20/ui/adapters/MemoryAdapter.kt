@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.eva20.R
 import com.example.eva20.network.models.Memory
 import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Locale
 
 class MemoryAdapter(private val onDeleteClick: (Memory) -> Unit) :
@@ -38,20 +39,20 @@ class MemoryAdapter(private val onDeleteClick: (Memory) -> Unit) :
         private val deleteButton: ImageButton = itemView.findViewById(R.id.buttonDelete)
 
         fun bind(memory: Memory) {
-            titleTextView.text = memory.title
-            contentTextView.text = memory.content
-            timestampTextView.text = dateFormat.format(memory.timestamp)
+            // Use title or text content if title is empty
+            titleTextView.text = if (memory.title.isNotEmpty()) memory.title else memory.text.take(30) + "..."
+
+            // Use content property for the main content
+            contentTextView.text = memory.text
+
+            // Format timestamp
+            timestampTextView.text = dateFormat.format(Date(memory.timestamp))
 
             // Show sync status
             syncStatusView.setBackgroundResource(
                 if (memory.isSynced) R.drawable.ic_synced
                 else R.drawable.ic_not_synced
             )
-
-            // Set tags if any
-            if (memory.tags.isNotEmpty()) {
-                // Implement tag display if needed
-            }
 
             // Set delete button click listener
             deleteButton.setOnClickListener {
