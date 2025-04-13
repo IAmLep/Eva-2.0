@@ -40,7 +40,7 @@ class MemoryAdapter(private val onDeleteClick: (Memory) -> Unit) :
 
         fun bind(memory: Memory) {
             // Use title or text content if title is empty
-            titleTextView.text = if (memory.title.isNotEmpty()) memory.title else memory.text.take(30) + "..."
+            titleTextView.text = memory.title.ifEmpty { memory.text.take(30) + "..." }
 
             // Use content property for the main content
             contentTextView.text = memory.text

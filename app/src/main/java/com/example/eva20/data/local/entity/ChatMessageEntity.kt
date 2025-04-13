@@ -22,7 +22,7 @@ data class ChatMessageEntity(
                 id = message.id,
                 text = message.text,
                 userId = message.userId,
-                isUser = message.isUser,
+                isUser = message.isFromUser, // Updated to use isFromUser instead of isUser
                 timestamp = message.timestamp,
                 synced = message.isSynced,
                 pending = message.pending,
@@ -34,12 +34,14 @@ data class ChatMessageEntity(
             return ChatMessage(
                 id = entity.id,
                 text = entity.text,
-                userId = entity.userId,
-                isUser = entity.isUser,
+                // Create the message with consistent field names
+                isFromUser = entity.isUser,
                 timestamp = entity.timestamp,
                 pending = entity.pending,
                 error = entity.error,
-                isSynced = entity.synced
+                isSynced = entity.synced,
+                // Add the serialized user_id field
+                userId = entity.userId ?: "IAmLep"
             )
         }
     }

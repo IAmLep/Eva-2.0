@@ -2,8 +2,8 @@ package com.example.eva20
 
 import android.app.Application
 import com.example.eva20.data.local.DatabaseManager
-import com.example.eva20.network.auth.AuthManager
 import com.example.eva20.network.api.ApiService
+import com.example.eva20.network.auth.AuthManager
 import com.example.eva20.utils.Logger
 
 class EvaApplication : Application() {
@@ -12,37 +12,31 @@ class EvaApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        // Initialize the Database Manager
-        DatabaseManager.initialize(this)
-
         // Configure logging first for better debugging
         Logger.setDebugMode(BuildConfig.DEBUG)
         Logger.i("Application", "Eva application starting...")
 
         // Initialize authentication manager
         authManager = AuthManager()
-        authManager.initialize(this)
+        authManager.initialize(this)  // Must be done before other initializations
+
+        // Initialize API Service with application context
+        ApiService.initialize(this)
+        Logger.i("Application", "API Service initialized")
 
         // Initialize local databases
         try {
             DatabaseManager.initialize(this)
-            Logger.i("Application", "Chat database initialized")
+            Logger.i("Application", "Database initialized")
         } catch (e: Exception) {
-            Logger.e("Application", "Failed to initialize chat database", e)
+            Logger.e("Application", "Failed to initialize database", e)
         }
 
-        try {
-            DatabaseManager.initialize(this)
-            Logger.i("Application", "Memory database initialized")
-        } catch (e: Exception) {
-            Logger.e("Application", "Failed to initialize memory database", e)
-        }
-
-        // Log application initialized
         Logger.i("Application", "Eva application initialized")
     }
 
     // Make auth manager accessible throughout the application
+    @Suppress("unused")
     fun getAuthManager(): AuthManager {
         return authManager
     }

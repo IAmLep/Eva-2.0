@@ -1,6 +1,5 @@
 package com.example.eva20.network.websocket
 
-import com.example.eva20.utils.Constants
 import com.example.eva20.utils.Logger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -15,7 +14,7 @@ import org.json.JSONObject
 import java.util.concurrent.TimeUnit
 
 class WebSocketManager {
-    private val TAG = "WebSocketManager"
+    private val tag = "WebSocketManager"
     private var webSocket: WebSocket? = null
     private val client = OkHttpClient.Builder()
         .readTimeout(30, TimeUnit.SECONDS)
@@ -33,13 +32,13 @@ class WebSocketManager {
             .build()
 
         webSocket = client.newWebSocket(request, createWebSocketListener())
-        Logger.d(TAG, "Connecting to WebSocket...")
+        Logger.d(tag, "Connecting to WebSocket...")
     }
 
     fun disconnect() {
         webSocket?.close(1000, "User closed connection")
         webSocket = null
-        Logger.d(TAG, "Disconnected from WebSocket")
+        Logger.d(tag, "Disconnected from WebSocket")
     }
 
     fun sendCommand(command: String) {
@@ -52,9 +51,9 @@ class WebSocketManager {
                 }
 
                 webSocket?.send(jsonObject.toString())
-                Logger.d(TAG, "Sent command: $command")
+                Logger.d(tag, "Sent command: $command")
             } catch (e: Exception) {
-                Logger.e(TAG, "Error sending command", e)
+                Logger.e(tag, "Error sending command", e)
             }
         }
     }
@@ -63,6 +62,7 @@ class WebSocketManager {
         connectionStatusListener = listener
     }
 
+    @Suppress("unused")
     fun setOnMessageListener(listener: (String) -> Unit) {
         messageListener = listener
     }
@@ -72,31 +72,31 @@ class WebSocketManager {
             override fun onOpen(webSocket: WebSocket, response: Response) {
                 super.onOpen(webSocket, response)
                 connectionStatusListener?.invoke("Connected")
-                Logger.d(TAG, "WebSocket connection established")
+                Logger.d(tag, "WebSocket connection established")
             }
 
             override fun onMessage(webSocket: WebSocket, text: String) {
                 super.onMessage(webSocket, text)
                 messageListener?.invoke(text)
-                Logger.d(TAG, "Received message: $text")
+                Logger.d(tag, "Received message: $text")
             }
 
             override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
                 super.onClosing(webSocket, code, reason)
                 connectionStatusListener?.invoke("Closing: $reason")
-                Logger.d(TAG, "WebSocket closing: $reason")
+                Logger.d(tag, "WebSocket closing: $reason")
             }
 
             override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
                 super.onClosed(webSocket, code, reason)
                 connectionStatusListener?.invoke("Closed: $reason")
-                Logger.d(TAG, "WebSocket closed: $reason")
+                Logger.d(tag, "WebSocket closed: $reason")
             }
 
             override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
                 super.onFailure(webSocket, t, response)
                 connectionStatusListener?.invoke("Failed: ${t.message}")
-                Logger.e(TAG, "WebSocket failure", t)
+                Logger.e(tag, "WebSocket failure", t)
             }
         }
     }

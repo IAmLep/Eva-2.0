@@ -24,7 +24,7 @@ import java.util.Locale
 import java.util.TimeZone
 
 class MainActivity : AppCompatActivity() {
-    private val TAG = "MainActivity"
+    private val tag = "MainActivity"
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
     private lateinit var navController: NavController
@@ -59,7 +59,7 @@ class MainActivity : AppCompatActivity() {
 
         // Listen for navigation changes
         navController.addOnDestinationChangedListener { _, destination, _ ->
-            Logger.d(TAG, "Navigated to: ${destination.label}")
+            Logger.d(tag, "Navigated to: ${destination.label}")
 
             // Hide drawer if navigating to call fragment (since it's an overlay)
             if (destination.id == R.id.nav_call) {
@@ -76,7 +76,7 @@ class MainActivity : AppCompatActivity() {
         val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
         dateFormat.timeZone = TimeZone.getTimeZone("UTC")
         val currentTime = dateFormat.format(Date())
-        Logger.i(TAG, "Main activity created at $currentTime by user: IAmLep")
+        Logger.i(tag, "Main activity created at $currentTime by user: IAmLep")
     }
 
     private fun checkBackendHealth() {
@@ -89,12 +89,12 @@ class MainActivity : AppCompatActivity() {
                         "Warning: Backend connectivity issues detected",
                         Toast.LENGTH_LONG
                     ).show()
-                    Logger.w(TAG, "Backend health check failed")
+                    Logger.w(tag, "Backend health check failed")
                 } else {
-                    Logger.d(TAG, "Backend health check passed")
+                    Logger.d(tag, "Backend health check passed")
                 }
             } catch (e: Exception) {
-                Logger.e(TAG, "Error checking backend health", e)
+                Logger.e(tag, "Error checking backend health", e)
                 Toast.makeText(
                     this@MainActivity,
                     "Warning: Couldn't connect to the backend",
@@ -113,6 +113,7 @@ class MainActivity : AppCompatActivity() {
         return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
     }
 
+    @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
         val drawerLayout: DrawerLayout = binding.drawerLayout
         if (drawerLayout.isDrawerOpen(GravityCompat.START)) {

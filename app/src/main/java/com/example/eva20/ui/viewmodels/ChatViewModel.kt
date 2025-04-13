@@ -8,7 +8,6 @@ import com.example.eva20.data.repository.ChatRepository
 import com.example.eva20.network.models.ChatMessage
 import com.example.eva20.utils.Logger
 import kotlinx.coroutines.launch
-import java.util.Date
 
 class ChatViewModel : ViewModel() {
 
@@ -40,46 +39,32 @@ class ChatViewModel : ViewModel() {
                     id = System.currentTimeMillis().toString(),
                     text = content,
                     timestamp = System.currentTimeMillis(),
-                    isUser = true
+                    isFromUser = true,
+                    userId = "IAmLep"
                 )
 
-                // Add to local list immediately for UI responsiveness
+                // Add user message to local list immediately for UI responsiveness
                 val currentList = _chatMessages.value?.toMutableList() ?: mutableListOf()
                 currentList.add(message)
                 _chatMessages.value = currentList
 
-                // Send to backend
-                repository.sendMessage(message)
+                // Send to backend and get response
+                val botResponse = repository.sendMessage(message)
 
-                // Get response from backend
-                getResponse(message)
+                // If we got a response from the API, add it to the chat
+                if (botResponse != null) {
+                    Logger.d("ChatViewModel", "Received bot response: ${botResponse.text}")
+
+                    // Add bot response to UI
+                    val updatedList = _chatMessages.value?.toMutableList() ?: mutableListOf()
+                    updatedList.add(botResponse)
+                    _chatMessages.value = updatedList
+                } else {
+                    Logger.e("ChatViewModel", "No response received from API")
+                    // Optionally show an error message or fallback response
+                }
             } catch (e: Exception) {
                 Logger.e("ChatViewModel", "Error sending message", e)
-            }
-        }
-    }
-
-    private fun getResponse(userMessage: ChatMessage) {
-        viewModelScope.launch {
-            try {
-                // Simulate delay for demo purposes
-                kotlinx.coroutines.delay(1000)
-
-                val responseMessage = ChatMessage(
-                    id = System.currentTimeMillis().toString(),
-                    text = "This is a response to: ${userMessage.text}",
-                    timestamp = System.currentTimeMillis(),
-                    isUser = false
-                )
-
-                val currentList = _chatMessages.value?.toMutableList() ?: mutableListOf()
-                currentList.add(responseMessage)
-                _chatMessages.value = currentList
-
-                // Save to repository
-                repository.saveMessage(responseMessage)
-            } catch (e: Exception) {
-                Logger.e("ChatViewModel", "Error getting response", e)
             }
         }
     }

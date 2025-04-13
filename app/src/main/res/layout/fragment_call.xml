@@ -28,6 +28,19 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textViewCallHeader" />
 
+    <!-- Added call duration display -->
+    <TextView
+        android:id="@+id/textViewDuration"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="00:00"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewStatus" />
+
     <ImageView
         android:id="@+id/imageViewAvatar"
         android:layout_width="120dp"
@@ -48,12 +61,15 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
-        <Button
+        <!-- Changed to ImageButton to work with the code -->
+        <ImageButton
             android:id="@+id/buttonMute"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
             android:layout_marginEnd="16dp"
-            android:text="Mute" />
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Mute"
+            android:src="@drawable/ic_microphone" />
 
         <Button
             android:id="@+id/buttonEndCall"

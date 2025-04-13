@@ -19,7 +19,7 @@ import java.util.Locale
 import java.util.TimeZone
 
 class CallFragment : Fragment() {
-    private val TAG = "CallFragment"
+    private val tag = "CallFragment"
     private var _binding: FragmentCallBinding? = null
     private val binding get() = _binding!!
 
@@ -48,7 +48,7 @@ class CallFragment : Fragment() {
         val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
         dateFormat.timeZone = TimeZone.getTimeZone("UTC")
         val currentTime = dateFormat.format(Date())
-        Logger.d(TAG, "Call fragment created at $currentTime by user: IAmLep")
+        Logger.d(tag, "Call fragment created at $currentTime by user: IAmLep")
 
         setupViewModel()
         setupClickListeners()
@@ -64,7 +64,7 @@ class CallFragment : Fragment() {
         binding.buttonEndCall.setOnClickListener {
             callViewModel.endCall()
             findNavController().navigateUp()
-            Logger.d(TAG, "Call ended, navigating back")
+            Logger.d(tag, "Call ended, navigating back")
         }
 
         binding.buttonMute.setOnClickListener {
@@ -80,8 +80,9 @@ class CallFragment : Fragment() {
         }
 
         callViewModel.isMuted.observe(viewLifecycleOwner) { isMuted ->
-            binding.buttonMute.setIconResource(
-                if (isMuted) R.drawable.ic_mic_off else R.drawable.ic_mic
+            // This assumes you now have the proper drawables in your project
+            binding.buttonMute.setImageResource(
+                if (isMuted) R.drawable.ic_microphone_off else R.drawable.ic_microphone
             )
         }
     }
@@ -104,7 +105,7 @@ class CallFragment : Fragment() {
     private fun formatDuration(seconds: Int): String {
         val minutes = seconds / 60
         val remainingSeconds = seconds % 60
-        return String.format("%02d:%02d", minutes, remainingSeconds)
+        return String.format(Locale.getDefault(), "%02d:%02d", minutes, remainingSeconds)
     }
 
     override fun onDestroyView() {

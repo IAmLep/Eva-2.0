@@ -8,10 +8,9 @@ import com.example.eva20.data.repository.MemoryRepository
 import com.example.eva20.network.models.Memory
 import com.example.eva20.utils.Logger
 import kotlinx.coroutines.launch
-import java.util.Date
 
 class MemoryViewModel : ViewModel() {
-    private val TAG = "MemoryViewModel"
+    private val tag = "MemoryViewModel"
     private val repository = MemoryRepository()
 
     private val _memories = MutableLiveData<List<Memory>>()
@@ -33,9 +32,9 @@ class MemoryViewModel : ViewModel() {
             try {
                 val loadedMemories = repository.getLocalMemories()
                 _memories.value = loadedMemories
-                Logger.d(TAG, "Loaded ${loadedMemories.size} memories from local storage")
+                Logger.d(tag, "Loaded ${loadedMemories.size} memories from local storage")
             } catch (e: Exception) {
-                Logger.e(TAG, "Error loading memories", e)
+                Logger.e(tag, "Error loading memories", e)
             } finally {
                 _isLoading.value = false
             }
@@ -51,15 +50,15 @@ class MemoryViewModel : ViewModel() {
                 if (success) {
                     loadMemories() // Reload after sync
                     _syncStatus.value = "Sync completed"
-                    Logger.d(TAG, "Sync with cloud completed")
+                    Logger.d(tag, "Sync with cloud completed")
                 } else {
                     _syncStatus.value = "Sync partially failed"
-                    Logger.w(TAG, "Sync with cloud partially failed")
+                    Logger.w(tag, "Sync with cloud partially failed")
                     loadMemories() // Still reload to get latest data
                 }
             } catch (e: Exception) {
                 _syncStatus.value = "Sync failed"
-                Logger.e(TAG, "Error syncing with cloud", e)
+                Logger.e(tag, "Error syncing with cloud", e)
             } finally {
                 _isLoading.value = false
             }
@@ -71,14 +70,14 @@ class MemoryViewModel : ViewModel() {
             try {
                 val success = repository.deleteMemory(memoryId)
                 if (success) {
-                    Logger.d(TAG, "Memory deleted: $memoryId")
+                    Logger.d(tag, "Memory deleted: $memoryId")
                     // Update UI immediately
                     _memories.value = _memories.value?.filter { it.id != memoryId }
                 } else {
-                    Logger.e(TAG, "Failed to delete memory: $memoryId")
+                    Logger.e(tag, "Failed to delete memory: $memoryId")
                 }
             } catch (e: Exception) {
-                Logger.e(TAG, "Error deleting memory", e)
+                Logger.e(tag, "Error deleting memory", e)
             }
         }
     }
@@ -99,13 +98,13 @@ class MemoryViewModel : ViewModel() {
 
                 val success = repository.createMemory(memory)
                 if (success) {
-                    Logger.d(TAG, "Memory created: ${memory.id}")
+                    Logger.d(tag, "Memory created: ${memory.id}")
                     loadMemories() // Reload to include the new memory
                 } else {
-                    Logger.e(TAG, "Failed to create memory")
+                    Logger.e(tag, "Failed to create memory")
                 }
             } catch (e: Exception) {
-                Logger.e(TAG, "Error creating memory", e)
+                Logger.e(tag, "Error creating memory", e)
             }
         }
     }

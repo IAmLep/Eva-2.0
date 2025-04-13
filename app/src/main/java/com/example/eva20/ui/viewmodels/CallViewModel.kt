@@ -13,7 +13,7 @@ import java.util.Locale
 import java.util.TimeZone
 
 class CallViewModel : ViewModel() {
-    private val TAG = "CallViewModel"
+    private val tag = "CallViewModel"
     private val webSocketManager = WebSocketManager()
 
     private val _connectionStatus = MutableLiveData<String>()
@@ -23,10 +23,12 @@ class CallViewModel : ViewModel() {
     val isMuted: LiveData<Boolean> = _isMuted
 
     // Keep track of the call start time
+    @Suppress("unused")
     private val _callStartTime = MutableLiveData<String>()
     val callStartTime: LiveData<String> = _callStartTime
 
     // Call duration in seconds
+    @Suppress("unused")
     private val _callDuration = MutableLiveData<Int>(0)
     val callDuration: LiveData<Int> = _callDuration
 
@@ -38,7 +40,7 @@ class CallViewModel : ViewModel() {
 
                 webSocketManager.setOnConnectionStatusChangeListener { status ->
                     _connectionStatus.postValue(status)
-                    Logger.d(TAG, "WebSocket status: $status")
+                    Logger.d(tag, "WebSocket status: $status")
 
                     // If connected, set the call start time
                     if (status == "Connected") {
@@ -51,7 +53,7 @@ class CallViewModel : ViewModel() {
                 _connectionStatus.value = "Connected"
             } catch (e: Exception) {
                 _connectionStatus.value = "Connection failed"
-                Logger.e(TAG, "WebSocket connection error", e)
+                Logger.e(tag, "WebSocket connection error", e)
             }
         }
     }
@@ -61,9 +63,9 @@ class CallViewModel : ViewModel() {
             try {
                 webSocketManager.disconnect()
                 _connectionStatus.value = "Disconnected"
-                Logger.d(TAG, "WebSocket disconnected")
+                Logger.d(tag, "WebSocket disconnected")
             } catch (e: Exception) {
-                Logger.e(TAG, "Error disconnecting WebSocket", e)
+                Logger.e(tag, "Error disconnecting WebSocket", e)
             }
         }
     }
@@ -75,9 +77,9 @@ class CallViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 webSocketManager.sendCommand(if (!currentMuteState) "mute" else "unmute")
-                Logger.d(TAG, "Toggled mute to ${!currentMuteState}")
+                Logger.d(tag, "Toggled mute to ${!currentMuteState}")
             } catch (e: Exception) {
-                Logger.e(TAG, "Error toggling mute", e)
+                Logger.e(tag, "Error toggling mute", e)
             }
         }
     }
@@ -90,10 +92,10 @@ class CallViewModel : ViewModel() {
 
                 // Log call duration for analytics
                 _callDuration.value?.let { duration ->
-                    Logger.d(TAG, "Call ended. Duration: $duration seconds")
+                    Logger.d(tag, "Call ended. Duration: $duration seconds")
                 }
             } catch (e: Exception) {
-                Logger.e(TAG, "Error ending call", e)
+                Logger.e(tag, "Error ending call", e)
             }
         }
     }

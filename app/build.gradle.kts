@@ -1,18 +1,18 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.ksp) // Replace kapt with ksp
+    alias(libs.plugins.ksp)
     id("kotlin-parcelize")
 }
 
 android {
     namespace = "com.example.eva20"
-    compileSdk = 35
+    compileSdk = 34  // Set to a stable version
 
     defaultConfig {
         applicationId = "com.example.eva20"
         minSdk = 25
-        targetSdk = 35
+        targetSdk = 34  // Set to a stable version
         versionCode = 1
         versionName = "1.0"
 
@@ -38,6 +38,23 @@ android {
     buildFeatures {
         buildConfig = true
         viewBinding = true
+    }
+
+    // Prevent duplicate file errors
+    packagingOptions {
+        resources {
+            excludes += listOf(
+                "META-INF/LICENSE",
+                "META-INF/LICENSE.txt",
+                "META-INF/license.txt",
+                "META-INF/NOTICE",
+                "META-INF/NOTICE.txt",
+                "META-INF/notice.txt",
+                "META-INF/ASL2.0",
+                "META-INF/DEPENDENCIES",
+                "META-INF/INDEX.LIST"
+            )
+        }
     }
 }
 
@@ -68,10 +85,10 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.coroutines.play.services)
 
-    // Room Database - Replace kapt with ksp
+    // Room Database
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
-    ksp(libs.androidx.room.compiler) // Changed from kapt to ksp
+    ksp(libs.androidx.room.compiler)
 
     // Swipe refresh layout
     implementation(libs.androidx.swiperefreshlayout)
@@ -80,4 +97,13 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+
+    // Just the Google Auth library for service account auth
+    implementation(libs.google.auth.library.oauth2.http)
+}
+
+// Correct Kotlin DSL syntax for configurations
+configurations.all {
+    exclude(group = "org.bouncycastle", module = "bcprov-jdk15on")
+    exclude(group = "org.bouncycastle", module = "bcpkix-jdk15on")
 }

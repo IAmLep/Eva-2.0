@@ -16,7 +16,7 @@ import java.util.Locale
 import java.util.TimeZone
 
 object DatabaseManager {
-    private val tag = "DatabaseManager"
+    private const val TAG = "DatabaseManager"
     private var database: AppDatabase? = null
 
     // Current time and user information
@@ -27,12 +27,12 @@ object DatabaseManager {
             return dateFormat.format(Date())
         }
 
-    private val currentUser: String = "IAmLep"
+    private const val CURRENTUSER: String = "IAmLep"
 
     fun initialize(context: Context) {
         if (database == null) {
             database = AppDatabase.getDatabase(context)
-            Logger.d(tag, "Database initialized at $currentTime by $currentUser")
+            Logger.d(TAG, "Database initialized at $currentTime by $CURRENTUSER")
         }
     }
 
@@ -45,11 +45,12 @@ object DatabaseManager {
             val entities = dao.getAllMessages()
             return@withContext entities.map { ChatMessageEntity.toChatMessage(it) }
         } catch (e: Exception) {
-            Logger.e(tag, "Error getting all chat messages", e)
+            Logger.e(TAG, "Error getting all chat messages", e)
             return@withContext emptyList()
         }
     }
 
+    @Suppress("unused")
     fun getAllMessagesFlow(): Flow<List<ChatMessage>> {
         val dao = database?.chatMessageDao()
             ?: throw IllegalStateException("Database not initialized")
@@ -58,6 +59,7 @@ object DatabaseManager {
             .map { entities -> entities.map { ChatMessageEntity.toChatMessage(it) } }
     }
 
+    @Suppress("unused")
     suspend fun getMessageById(messageId: String): ChatMessage? = withContext(Dispatchers.IO) {
         try {
             val dao = database?.chatMessageDao()
@@ -66,7 +68,7 @@ object DatabaseManager {
             val entity = dao.getMessageById(messageId)
             return@withContext entity?.let { ChatMessageEntity.toChatMessage(it) }
         } catch (e: Exception) {
-            Logger.e(tag, "Error getting message by ID: $messageId", e)
+            Logger.e(TAG, "Error getting message by ID: $messageId", e)
             return@withContext null
         }
     }
@@ -78,14 +80,15 @@ object DatabaseManager {
 
             val entity = ChatMessageEntity.fromChatMessage(message)
             val insertResult = dao.insertMessage(entity)
-            Logger.d(tag, "Chat message added with ID: ${message.id} by $currentUser at $currentTime")
+            Logger.d(TAG, "Chat message added with ID: ${message.id} by $CURRENTUSER at $currentTime")
             return@withContext insertResult > 0
         } catch (e: Exception) {
-            Logger.e(tag, "Error adding chat message", e)
+            Logger.e(TAG, "Error adding chat message", e)
             return@withContext false
         }
     }
 
+    @Suppress("unused")
     suspend fun updateMessage(message: ChatMessage): Boolean = withContext(Dispatchers.IO) {
         try {
             val dao = database?.chatMessageDao()
@@ -93,24 +96,25 @@ object DatabaseManager {
 
             val entity = ChatMessageEntity.fromChatMessage(message)
             val updateResult = dao.updateMessage(entity)
-            Logger.d(tag, "Chat message updated with ID: ${message.id} by $currentUser at $currentTime")
+            Logger.d(TAG, "Chat message updated with ID: ${message.id} by $CURRENTUSER at $currentTime")
             return@withContext updateResult > 0
         } catch (e: Exception) {
-            Logger.e(tag, "Error updating chat message", e)
+            Logger.e(TAG, "Error updating chat message", e)
             return@withContext false
         }
     }
 
+    @Suppress("unused")
     suspend fun deleteMessage(messageId: String): Boolean = withContext(Dispatchers.IO) {
         try {
             val dao = database?.chatMessageDao()
                 ?: throw IllegalStateException("Database not initialized")
 
             val deleteResult = dao.deleteMessage(messageId)
-            Logger.d(tag, "Chat message deleted with ID: $messageId by $currentUser at $currentTime")
+            Logger.d(TAG, "Chat message deleted with ID: $messageId by $CURRENTUSER at $currentTime")
             return@withContext deleteResult > 0
         } catch (e: Exception) {
-            Logger.e(tag, "Error deleting chat message", e)
+            Logger.e(TAG, "Error deleting chat message", e)
             return@withContext false
         }
     }
@@ -121,14 +125,15 @@ object DatabaseManager {
                 ?: throw IllegalStateException("Database not initialized")
 
             val updateResult = dao.markAsSynced(messageId)
-            Logger.d(tag, "Chat message marked as synced: $messageId by $currentUser at $currentTime")
+            Logger.d(TAG, "Chat message marked as synced: $messageId by $CURRENTUSER at $currentTime")
             return@withContext updateResult > 0
         } catch (e: Exception) {
-            Logger.e(tag, "Error marking chat message as synced", e)
+            Logger.e(TAG, "Error marking chat message as synced", e)
             return@withContext false
         }
     }
 
+    @Suppress("unused")
     suspend fun getUnsyncedMessages(): List<ChatMessage> = withContext(Dispatchers.IO) {
         try {
             val dao = database?.chatMessageDao()
@@ -137,7 +142,7 @@ object DatabaseManager {
             val entities = dao.getUnsyncedMessages()
             return@withContext entities.map { ChatMessageEntity.toChatMessage(it) }
         } catch (e: Exception) {
-            Logger.e(tag, "Error getting unsynced chat messages", e)
+            Logger.e(TAG, "Error getting unsynced chat messages", e)
             return@withContext emptyList()
         }
     }
@@ -151,11 +156,12 @@ object DatabaseManager {
             val entities = dao.getAllMemories()
             return@withContext entities.map { MemoryEntity.toMemory(it) }
         } catch (e: Exception) {
-            Logger.e(tag, "Error getting all memories", e)
+            Logger.e(TAG, "Error getting all memories", e)
             return@withContext emptyList()
         }
     }
 
+    @Suppress("unused")
     fun getAllMemoriesFlow(): Flow<List<Memory>> {
         val dao = database?.memoryDao()
             ?: throw IllegalStateException("Database not initialized")
@@ -164,6 +170,7 @@ object DatabaseManager {
             .map { entities -> entities.map { MemoryEntity.toMemory(it) } }
     }
 
+    @Suppress("unused")
     suspend fun getMemoryById(memoryId: String): Memory? = withContext(Dispatchers.IO) {
         try {
             val dao = database?.memoryDao()
@@ -172,7 +179,7 @@ object DatabaseManager {
             val entity = dao.getMemoryById(memoryId)
             return@withContext entity?.let { MemoryEntity.toMemory(it) }
         } catch (e: Exception) {
-            Logger.e(tag, "Error getting memory by ID: $memoryId", e)
+            Logger.e(TAG, "Error getting memory by ID: $memoryId", e)
             return@withContext null
         }
     }
@@ -184,14 +191,15 @@ object DatabaseManager {
 
             val entity = MemoryEntity.fromMemory(memory)
             val insertResult = dao.insertMemory(entity)
-            Logger.d(tag, "Memory added with ID: ${memory.id} by $currentUser at $currentTime")
+            Logger.d(TAG, "Memory added with ID: ${memory.id} by $CURRENTUSER at $currentTime")
             return@withContext insertResult > 0
         } catch (e: Exception) {
-            Logger.e(tag, "Error adding memory", e)
+            Logger.e(TAG, "Error adding memory", e)
             return@withContext false
         }
     }
 
+    @Suppress("unused")
     suspend fun updateMemory(memory: Memory): Boolean = withContext(Dispatchers.IO) {
         try {
             val dao = database?.memoryDao()
@@ -199,10 +207,10 @@ object DatabaseManager {
 
             val entity = MemoryEntity.fromMemory(memory)
             val updateResult = dao.updateMemory(entity)
-            Logger.d(tag, "Memory updated with ID: ${memory.id} by $currentUser at $currentTime")
+            Logger.d(TAG, "Memory updated with ID: ${memory.id} by $CURRENTUSER at $currentTime")
             return@withContext updateResult > 0
         } catch (e: Exception) {
-            Logger.e(tag, "Error updating memory", e)
+            Logger.e(TAG, "Error updating memory", e)
             return@withContext false
         }
     }
@@ -213,10 +221,10 @@ object DatabaseManager {
                 ?: throw IllegalStateException("Database not initialized")
 
             val deleteResult = dao.deleteMemory(memoryId)
-            Logger.d(tag, "Memory deleted with ID: $memoryId by $currentUser at $currentTime")
+            Logger.d(TAG, "Memory deleted with ID: $memoryId by $CURRENTUSER at $currentTime")
             return@withContext deleteResult > 0
         } catch (e: Exception) {
-            Logger.e(tag, "Error deleting memory", e)
+            Logger.e(TAG, "Error deleting memory", e)
             return@withContext false
         }
     }
@@ -227,10 +235,10 @@ object DatabaseManager {
                 ?: throw IllegalStateException("Database not initialized")
 
             val updateResult = dao.markAsSynced(memoryId)
-            Logger.d(tag, "Memory marked as synced: $memoryId by $currentUser at $currentTime")
+            Logger.d(TAG, "Memory marked as synced: $memoryId by $CURRENTUSER at $currentTime")
             return@withContext updateResult > 0
         } catch (e: Exception) {
-            Logger.e(tag, "Error marking memory as synced", e)
+            Logger.e(TAG, "Error marking memory as synced", e)
             return@withContext false
         }
     }
@@ -243,11 +251,12 @@ object DatabaseManager {
             val entities = dao.getUnsyncedMemories()
             return@withContext entities.map { MemoryEntity.toMemory(it) }
         } catch (e: Exception) {
-            Logger.e(tag, "Error getting unsynced memories", e)
+            Logger.e(TAG, "Error getting unsynced memories", e)
             return@withContext emptyList()
         }
     }
 
+    @Suppress("unused")
     suspend fun getMemoriesByCategory(category: String): List<Memory> = withContext(Dispatchers.IO) {
         try {
             val dao = database?.memoryDao()
@@ -256,11 +265,12 @@ object DatabaseManager {
             val entities = dao.getMemoriesByCategory(category)
             return@withContext entities.map { MemoryEntity.toMemory(it) }
         } catch (e: Exception) {
-            Logger.e(tag, "Error getting memories by category: $category", e)
+            Logger.e(TAG, "Error getting memories by category: $category", e)
             return@withContext emptyList()
         }
     }
 
+    @Suppress("unused")
     suspend fun getMemoriesByImportance(minImportance: Int): List<Memory> = withContext(Dispatchers.IO) {
         try {
             val dao = database?.memoryDao()
@@ -269,7 +279,7 @@ object DatabaseManager {
             val entities = dao.getMemoriesByImportance(minImportance)
             return@withContext entities.map { MemoryEntity.toMemory(it) }
         } catch (e: Exception) {
-            Logger.e(tag, "Error getting memories by importance: $minImportance", e)
+            Logger.e(TAG, "Error getting memories by importance: $minImportance", e)
             return@withContext emptyList()
         }
     }

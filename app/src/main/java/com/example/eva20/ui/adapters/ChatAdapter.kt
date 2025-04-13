@@ -41,7 +41,7 @@ class ChatAdapter : ListAdapter<ChatMessage, ChatAdapter.ChatViewHolder>(ChatDif
 
             // Align messages based on sender (user or bot)
             val params = messageContainer.layoutParams as ViewGroup.MarginLayoutParams
-            if (message.isUser) {
+            if (message.isFromUser) { // Changed from isUser to isFromUser
                 messageContainer.setBackgroundResource(R.drawable.bg_message_user)
                 params.apply {
                     marginStart = 100

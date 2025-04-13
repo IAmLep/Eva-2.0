@@ -27,15 +27,18 @@ interface MemoryDao {
     @Query("DELETE FROM memories WHERE id = :id")
     suspend fun deleteMemory(id: String): Int
 
+    @Suppress("unused")
     @Query("DELETE FROM memories")
     suspend fun deleteAllMessages(): Int
 
     @Query("UPDATE memories SET synced = 1 WHERE id = :id")
     suspend fun markAsSynced(id: String): Int
 
+    @Suppress("unused")
     @Query("SELECT * FROM memories WHERE category = :category ORDER BY timestamp DESC")
     suspend fun getMemoriesByCategory(category: String): List<MemoryEntity>
 
+    @Suppress("unused")
     @Query("SELECT * FROM memories WHERE importance >= :minImportance ORDER BY importance DESC, timestamp DESC")
     suspend fun getMemoriesByImportance(minImportance: Int): List<MemoryEntity>
 }

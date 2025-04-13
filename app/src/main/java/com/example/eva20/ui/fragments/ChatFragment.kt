@@ -20,7 +20,7 @@ import java.util.Locale
 import java.util.TimeZone
 
 class ChatFragment : Fragment() {
-    private val TAG = "ChatFragment"
+    private val tag = "ChatFragment"
     private var _binding: FragmentChatBinding? = null
     private val binding get() = _binding!!
 
@@ -43,7 +43,7 @@ class ChatFragment : Fragment() {
         val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
         dateFormat.timeZone = TimeZone.getTimeZone("UTC")
         val currentTime = dateFormat.format(Date())
-        Logger.d(TAG, "Fragment created at $currentTime by user: IAmLep")
+        Logger.d(tag, "Fragment created at $currentTime by user: IAmLep")
 
         setupViewModel()
         setupRecyclerView()
@@ -80,7 +80,7 @@ class ChatFragment : Fragment() {
 
         binding.buttonCall.setOnClickListener {
             findNavController().navigate(R.id.action_chat_fragment_to_call_fragment)
-            Logger.d(TAG, "Navigating to call fragment")
+            Logger.d(tag, "Navigating to call fragment")
         }
     }
 
@@ -90,7 +90,8 @@ class ChatFragment : Fragment() {
             if (messages.isNotEmpty()) {
                 binding.recyclerViewChat.scrollToPosition(messages.size - 1)
             }
-            binding.emptyView?.visibility = if (messages.isEmpty()) View.VISIBLE else View.GONE
+            // Make sure you have this view in your layout
+            binding.textViewEmptyState?.visibility = if (messages.isEmpty()) View.VISIBLE else View.GONE
         }
     }
 

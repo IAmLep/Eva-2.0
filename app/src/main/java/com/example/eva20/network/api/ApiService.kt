@@ -1,11 +1,15 @@
 package com.example.eva20.network.api
 
+import android.content.Context
 import com.example.eva20.BuildConfig
 import com.example.eva20.network.auth.AuthManager
 import com.example.eva20.network.models.ChatMessage
 import com.example.eva20.network.models.Memory
+import com.example.eva20.network.models.SimpleMessageRequest
+import com.example.eva20.network.models.SimpleMessageResponse
 import com.example.eva20.utils.Constants
 import com.example.eva20.utils.Logger
+import com.google.gson.GsonBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -13,12 +17,15 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.util.Date
 import java.util.concurrent.TimeUnit
 
 object ApiService {
     private const val TAG = "ApiService"
 
     private val authManager = AuthManager()
+    private var isInitialized = false
+    private lateinit var appContext: Context
 
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
         level = if (BuildConfig.DEBUG) {
@@ -38,11 +45,18 @@ object ApiService {
             .build()
     }
 
+    // Custom Gson configuration for handling date format issues
+    private val gson by lazy {
+        GsonBuilder()
+            .registerTypeAdapter(Date::class.java, DateDeserializer())
+            .create()
+    }
+
     private val retrofit by lazy {
         Retrofit.Builder()
             .baseUrl(Constants.BASE_API_URL)
             .client(client)
-            .addConverterFactory(GsonConverterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create(gson))  // Use custom gson
             .build()
     }
 
@@ -50,28 +64,14 @@ object ApiService {
         retrofit.create(ApiClient::class.java)
     }
 
-    // Data class for authentication response
-    data class AuthResponse(
-        val token: String,
-        val expires_in: Int? = null
-    )
+    // Initialize with application context
+    fun initialize(context: Context) {
+        if (isInitialized) return
 
-    // Authentication endpoint interface
-    interface AuthApiClient {
-        @retrofit2.http.POST("auth/token")
-        suspend fun getAuthToken(@retrofit2.http.Body request: AuthRequest): Response<AuthResponse>
-    }
-
-    data class AuthRequest(
-        val username: String,
-        val password: String,
-        val client_id: String? = null,
-        val client_secret: String? = null,
-        val grant_type: String = "password"
-    )
-
-    private val authApiClient: AuthApiClient by lazy {
-        retrofit.create(AuthApiClient::class.java)
+        appContext = context.applicationContext
+        authManager.initialize(appContext)
+        isInitialized = true
+        Logger.d(TAG, "ApiService initialized successfully")
     }
 
     // Check if we have a valid authentication token
@@ -79,65 +79,100 @@ object ApiService {
         return authManager.isAuthenticated()
     }
 
-    // Authenticate with the backend
+    // Authenticate with the backend using Google service account
     suspend fun authenticate(): Boolean = withContext(Dispatchers.IO) {
         try {
-            Logger.d(TAG, "Attempting to authenticate with backend")
+            Logger.d(TAG, "Attempting to authenticate with Cloud Run service")
 
-            // For this example, we're using a pre-configured service account
-            val request = AuthRequest(
-                username = "service-account@example.com",  // Replace with actual service account
-                password = "service-account-password",     // Replace with actual password
-                client_id = "eva-android-app",
-                grant_type = "password"
-            )
+            // During testing, always generate a fresh token
+            val success = authManager.generateToken(appContext)
 
-            val response = authApiClient.getAuthToken(request)
-
-            if (response.isSuccessful && response.body() != null) {
-                val authResponse = response.body()!!
-                authManager.setAuthToken(authResponse.token)
+            if (success) {
                 Logger.d(TAG, "Authentication successful")
-                true
+                return@withContext true
             } else {
-                Logger.e(TAG, "Authentication failed: ${response.code()} - ${response.message()}")
-                false
+                Logger.e(TAG, "Failed to generate authentication token")
+                return@withContext false
             }
         } catch (e: Exception) {
             Logger.e(TAG, "Error during authentication", e)
-            false
+            return@withContext false
         }
     }
 
-    suspend fun sendMessage(message: ChatMessage, useSimpleEndpoint: Boolean = false): Result<ChatMessage> = withContext(Dispatchers.IO) {
+    suspend fun sendMessage(message: ChatMessage, useSimpleEndpoint: Boolean = true): Result<ChatMessage> = withContext(Dispatchers.IO) {
         try {
-            Logger.d(TAG, "Sending message: ${message.text} to ${if (useSimpleEndpoint) "simple-message" else "message"} endpoint")
-
-            val response = if (useSimpleEndpoint) {
-                apiClient.sendSimpleMessage(message)
-            } else {
-                apiClient.sendFullMessage(message)
+            // Check authentication before sending
+            if (!isAuthenticated()) {
+                Logger.d(TAG, "Not authenticated, attempting to authenticate")
+                val authenticated = authenticate()
+                if (!authenticated) {
+                    Logger.e(TAG, "Failed to authenticate, cannot send message")
+                    return@withContext Result.failure(Exception("Authentication failed"))
+                }
             }
 
-            if (response.isSuccessful) {
-                response.body()?.let {
-                    Logger.d(TAG, "Message sent successfully, received response")
-                    Result.success(it)
-                } ?: run {
-                    Logger.e(TAG, "Response successful but body is null")
-                    Result.failure(Exception("Response body is null"))
+            Logger.d(TAG, "Sending message: ${message.text} to ${if (useSimpleEndpoint) "simple-message" else "message"} endpoint")
+
+            if (useSimpleEndpoint) {
+                // Convert ChatMessage to SimpleMessageRequest
+                val simpleRequest = SimpleMessageRequest(
+                    message = message.text,
+                    context = mapOf(
+                        "user_id" to message.userId,
+                        "timestamp" to message.timestamp.toString()
+                    )
+                )
+
+                // Call the simple endpoint
+                val response = apiClient.sendSimpleMessage(simpleRequest)
+
+                if (response.isSuccessful) {
+                    response.body()?.let { simpleResponse ->
+                        // Convert SimpleMessageResponse back to ChatMessage
+                        val responseMessage = ChatMessage(
+                            id = System.currentTimeMillis().toString(),
+                            text = simpleResponse.response,
+                            isFromUser = false,
+                            timestamp = simpleResponse.timestamp.time,
+                            userId = "EVA-BOT"
+                        )
+                        Logger.d(TAG, "Simple message sent successfully, received response")
+                        return@withContext Result.success(responseMessage)
+                    } ?: run {
+                        Logger.e(TAG, "Response successful but body is null")
+                        return@withContext Result.failure(Exception("Response body is null"))
+                    }
+                } else {
+                    val errorMsg = "API call failed with code ${response.code()}: ${response.message()}"
+                    Logger.e(TAG, errorMsg)
+                    return@withContext Result.failure(Exception(errorMsg))
                 }
             } else {
-                val errorMsg = "API call failed with code ${response.code()}: ${response.message()}"
-                Logger.e(TAG, errorMsg)
-                Result.failure(Exception(errorMsg))
+                // Use original endpoint (probably won't work with current backend)
+                val response = apiClient.sendFullMessage(message)
+
+                if (response.isSuccessful) {
+                    response.body()?.let {
+                        Logger.d(TAG, "Full message sent successfully, received response")
+                        return@withContext Result.success(it)
+                    } ?: run {
+                        Logger.e(TAG, "Response successful but body is null")
+                        return@withContext Result.failure(Exception("Response body is null"))
+                    }
+                } else {
+                    val errorMsg = "API call failed with code ${response.code()}: ${response.message()}"
+                    Logger.e(TAG, errorMsg)
+                    return@withContext Result.failure(Exception(errorMsg))
+                }
             }
         } catch (e: Exception) {
             Logger.e(TAG, "Exception during API call", e)
-            Result.failure(e)
+            return@withContext Result.failure(e)
         }
     }
 
+    @Suppress("unused")
     suspend fun syncMemories(memories: List<Memory>): Result<Boolean> = withContext(Dispatchers.IO) {
         try {
             Logger.d(TAG, "Syncing ${memories.size} memories with backend")
@@ -169,10 +204,10 @@ object ApiService {
                 }
             }
 
-            Result.success(allSuccessful)
+            return@withContext Result.success(allSuccessful)
         } catch (e: Exception) {
             Logger.e(TAG, "Error in syncMemories", e)
-            Result.failure(e)
+            return@withContext Result.failure(e)
         }
     }
 
@@ -180,28 +215,33 @@ object ApiService {
     suspend fun checkHealth(): Boolean = withContext(Dispatchers.IO) {
         try {
             val response = apiClient.getHealthStatus()
-            response.isSuccessful
+            return@withContext response.isSuccessful
         } catch (e: Exception) {
             Logger.e(TAG, "Health check failed", e)
-            false
+            return@withContext false
         }
     }
 
     suspend fun <T> safeApiCall(apiCall: suspend () -> Response<T>): Result<T> = withContext(Dispatchers.IO) {
         try {
+            // Check authentication before making the API call
+            if (!isAuthenticated()) {
+                authenticate()
+            }
+
             val response = apiCall()
             if (response.isSuccessful) {
                 response.body()?.let {
-                    Result.success(it)
-                } ?: Result.failure(Exception("Response body is null"))
+                    return@withContext Result.success(it)
+                } ?: return@withContext Result.failure(Exception("Response body is null"))
             } else {
                 val errorMsg = "API call failed with code ${response.code()}: ${response.message()}"
                 Logger.e(TAG, errorMsg)
-                Result.failure(Exception(errorMsg))
+                return@withContext Result.failure(Exception(errorMsg))
             }
         } catch (e: Exception) {
             Logger.e(TAG, "Exception during API call", e)
-            Result.failure(e)
+            return@withContext Result.failure(e)
         }
     }
 }

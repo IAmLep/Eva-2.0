@@ -18,7 +18,7 @@ import java.util.Date
 import java.util.Locale
 
 class MemoryFragment : Fragment() {
-    private val TAG = "MemoryFragment"
+    private val tag = "MemoryFragment"
     private var _binding: FragmentMemoryBinding? = null
     private val binding get() = _binding!!
 
@@ -37,7 +37,7 @@ class MemoryFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        Logger.d(TAG, "Fragment created")
+        Logger.d(tag, "Fragment created")
 
         setupViewModel()
         setupRecyclerView()
@@ -68,7 +68,8 @@ class MemoryFragment : Fragment() {
     }
 
     private fun setupAddButton() {
-        binding.fabAddMemory.setOnClickListener {
+        // Make sure this FAB exists in your layout
+        binding.addMemoryButton.setOnClickListener {
             showAddMemoryDialog()
         }
     }
@@ -84,7 +85,7 @@ class MemoryFragment : Fragment() {
         }
 
         memoryViewModel.syncStatus.observe(viewLifecycleOwner) { status ->
-            Logger.d(TAG, "Sync status: $status")
+            Logger.d(tag, "Sync status: $status")
             Toast.makeText(context, status, Toast.LENGTH_SHORT).show()
         }
     }

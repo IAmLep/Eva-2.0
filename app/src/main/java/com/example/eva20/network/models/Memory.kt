@@ -17,5 +17,6 @@ data class Memory(
     val isSynced: Boolean = false // Added as it's used in MemoryAdapter
 ) {
     // Helper method to get Date from timestamp for UI
+    @Suppress("unused")
     fun getDate(): Date = Date(timestamp)
 }
